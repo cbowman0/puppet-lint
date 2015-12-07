@@ -86,6 +86,119 @@ PuppetLint.new_check(:'2sp_soft_tabs') do
   end
 end
 
+# Public: Check the manifest tokens for indentation level
+PuppetLint.new_check(:'indent_level') do
+  def check
+    line_lex = []
+    indent_levels = []
+    indent_levels << Hash["indent_level" => 0, "row_type" => "START"]
+    indent_size = 2
+    indent_level = 0
+
+    tokens.each do |token|
+      line_lex << token
+      if [:NEWLINE].include? token.type # if newline
+
+        # Line only contains a NEWLINE.  Skip it.
+        if line_lex.length == 1
+          line_lex.clear
+          next
+        end
+
+        # Identify current indent token and length
+        # row_type is first non-indent token
+        current_indent = 0
+        indent_token_idx = line_lex.index { |t| t.type == :INDENT }
+        row_type = line_lex[0].type.to_s
+        if !indent_token_idx.nil?
+          indent_token = line_lex[indent_token_idx]
+          current_indent = indent_token.value.length
+          row_type = line_lex[indent_token_idx+1].type.to_s
+        end
+
+        # Find the token before the newline(s)
+        token_before_newline_idx = line_lex.rindex { |t| t.type != :NEWLINE }
+        if !token_before_newline_idx.nil?
+          token_before_newline = line_lex[token_before_newline_idx]
+        end
+
+        current_indent_level = indent_levels.last
+        indent_level = current_indent_level["indent_level"]
+
+        if ["CLASS", "NAME", "CASE"].include? row_type  
+          if line_lex.index{|x| x.type == :FARROW}.nil?
+            indent_levels << Hash["indent_level" => indent_level, "row_type" => row_type]
+          end
+        end
+
+        # Sort out number of indents and push/pop appropriately
+        #  May need to treat PARENs and BRACEs separately
+        num_open = line_lex.count { |t| [:LBRACE, :LPAREN].include? t.type }
+        num_close = line_lex.count { |t| [:RBRACE, :RPAREN].include? t.type }
+        if num_open > num_close
+          for i in 1..(num_open-num_close)
+            last_indent_level = indent_levels.last["indent_level"]
+            indent_levels << Hash["indent_level" => last_indent_level+indent_size, "row_type" => "LBRACE"]
+          end
+        elsif num_close > num_open
+          num = (num_close-num_open)
+          i = 1
+          until i > num do
+            l = indent_levels.pop
+            num -= 1 if l["row_type"] == "LBRACE"
+          end
+          current_indent_level = indent_levels.last
+          indent_level = current_indent_level["indent_level"]
+        elsif ["RBRACE", "RPAREN"].include? row_type
+          until ["LBRACE", "LPAREN"].include? indent_levels.last["row_type"]
+            indent_levels.pop
+          end
+          current_indent_level = indent_levels.last(2)[0]
+          indent_level = current_indent_level["indent_level"]
+        end
+
+        if [:COLON].include? token_before_newline.type
+          last_indent_level = indent_levels.last["indent_level"]
+          indent_levels << Hash["indent_level" => last_indent_level+indent_size, "row_type" => "COLON"]
+        end
+        if [:SEMIC].include? token_before_newline.type
+            l = indent_levels.pop
+            # Semicolon cannot end a {} block
+            if l["row_type"] == "LBRACE"
+              indent_levels << l
+            end
+        end
+
+        # Error condition
+        if current_indent != indent_level
+          bad_token = line_lex[0]
+          notify :warning, {
+            :message => "indent level incorrect.  Expected " + indent_level.to_s,
+            :line    => bad_token.line,
+            :column  => bad_token.column,
+            :token   => bad_token,
+            :indent_depth => indent_level,
+          }
+        end
+
+        # Done with this line
+        line_lex.clear
+      end
+    end
+  end
+
+  def fix(problem)
+    new_ws_len = problem[:indent_depth]
+    new_ws = ' ' * new_ws_len
+    if problem[:token].type == :INDENT
+      problem[:token].value = new_ws
+    else
+      index = tokens.index(problem[:token].prev_token)
+      tokens.insert(index + 1, PuppetLint::Lexer::Token.new(:INDENT, new_ws, 0, 0))
+    end
+  end
+end
+
 # Public: Check the manifest tokens for any arrows (=>) in a grouping ({}) that
 # are not aligned with other arrows in that grouping.
 PuppetLint.new_check(:arrow_alignment) do
