@@ -14,6 +14,9 @@ class PuppetLint::Data
     # Internal: Get/Set the raw manifest data, split by \n.
     attr_accessor :manifest_lines
 
+    # Internal: Tokens array size
+    @tokens_size = 0
+
     # Internal: Store the tokenised manifest.
     #
     # tokens - The Array of PuppetLint::Lexer::Token objects to store.
@@ -21,6 +24,7 @@ class PuppetLint::Data
     # Returns nothing.
     def tokens=(tokens)
       @tokens = tokens
+      @tokens_size = tokens.size
       @title_tokens = nil
       @resource_indexes = nil
       @class_indexes = nil
@@ -49,6 +53,28 @@ class PuppetLint::Data
       end
     end
 
+    # Internal: Test if tokens length has changed and if so, nil out the indexes
+    #
+    # Returns True/False
+    def tokens_size_change
+      if tokens.size != @tokens_size
+        @tokens_size = tokens.size
+        @title_tokens = nil
+        @resource_indexes = nil
+        @class_indexes = nil
+        @defined_type_indexes = nil
+        @node_indexes = nil
+        @function_indexes = nil
+        @array_indexes = nil
+        @hash_indexes = nil
+        @defaults_indexes = nil
+        false
+      else
+        true
+      end
+    end
+
+
     # Internal: Store the path to the manifest file and populate fullpath and
     # filename.
     #
@@ -70,6 +96,7 @@ class PuppetLint::Data
     #
     # Returns an Array of PuppetLint::Lexer::Token objects.
     def title_tokens
+      tokens_size_change()
       @title_tokens ||= Proc.new do
         result = []
         tokens.each_index do |token_idx|
@@ -105,6 +132,7 @@ class PuppetLint::Data
     #   :end   - An Integer position in the `tokens` Array pointing to the last
     #            Token of a resource declaration.
     def resource_indexes
+      tokens_size_change()
       @resource_indexes ||= begin
         marker = 0
         result = []
@@ -166,6 +194,7 @@ class PuppetLint::Data
     #   :tokens - An Array consisting of all the Token objects that make up the
     #             class definition.
     def class_indexes
+      tokens_size_change()
       @class_indexes ||= definition_indexes(:CLASS)
     end
 
@@ -180,6 +209,7 @@ class PuppetLint::Data
     #   :tokens - An Array consisting of all the Token objects that make up the
     #             defined type.
     def defined_type_indexes
+      tokens_size_change()
       @defined_type_indexes ||= definition_indexes(:DEFINE)
     end
 
@@ -194,6 +224,7 @@ class PuppetLint::Data
     #   :tokens - An Array consisting of all the Token objects that make up the
     #             defined type.
     def node_indexes
+      tokens_size_change()
       @node_indexes ||= definition_indexes(:NODE)
     end
 
@@ -261,6 +292,7 @@ class PuppetLint::Data
     #   :tokens - An Array consisting of all the Token objects that make up the
     #             function call.
     def function_indexes
+      tokens_size_change()
       @function_indexes ||= Proc.new do
         functions = []
         tokens.each_with_index do |token, token_idx|
@@ -309,6 +341,7 @@ class PuppetLint::Data
     #   :tokens - An Array consisting of all the Token objects that make up the
     #             array value.
     def array_indexes
+      tokens_size_change()
       @array_indexes ||= Proc.new do
         arrays = []
         tokens.each_with_index do |token, token_idx|
@@ -344,6 +377,7 @@ class PuppetLint::Data
     #   :tokens - An Array consisting of all the Token objects that make up the
     #             hash value.
     def hash_indexes
+      tokens_size_change()
       @hash_indexes ||= Proc.new do
         hashes = []
         tokens.each_with_index do |token, token_idx|
@@ -382,6 +416,7 @@ class PuppetLint::Data
     #   :tokens - An Array consisting of all the Token objects that make up the
     #             defaults declaration.
     def defaults_indexes
+      tokens_size_change()
       @defaults_indexes ||= Proc.new do
         defaults = []
         tokens.each_with_index do |token, token_idx|
