@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](http://semver.org).
 
+## [v5.0.0](https://github.com/puppetlabs/puppet-lint/tree/v5.0.0) - 2025-09-23
+
+[Full Changelog](https://github.com/puppetlabs/puppet-lint/compare/v4.3.0...v5.0.0)
+
+### Changed
+
+- (CAT-2281) Remove puppet 7 infrastructure [#242](https://github.com/puppetlabs/puppet-lint/pull/242) ([LukasAud](https://github.com/LukasAud))
+
+### Added
+
+- Add abstract data types to lexer type tokens list [#240](https://github.com/puppetlabs/puppet-lint/pull/240) ([kenyon](https://github.com/kenyon))
+
+### Fixed
+
+- Add missing `require 'pp'` [#247](https://github.com/puppetlabs/puppet-lint/pull/247) ([alexjfisher](https://github.com/alexjfisher))
+- Avoid using the manifest lexer on YAML [#239](https://github.com/puppetlabs/puppet-lint/pull/239) ([tokenrove](https://github.com/tokenrove))
+
 ## [v4.3.0](https://github.com/puppetlabs/puppet-lint/tree/v4.3.0) - 2025-03-06
 
 [Full Changelog](https://github.com/puppetlabs/puppet-lint/compare/v4.2.4...v4.3.0)
