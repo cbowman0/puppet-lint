@@ -22,6 +22,7 @@ end
 
 require 'puppet-lint'
 require 'rspec/its'
+require 'pp'
 begin
   require 'rspec/json_expectations'
 rescue LoadError, SyntaxError
