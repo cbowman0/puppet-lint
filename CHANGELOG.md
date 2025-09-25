@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](http://semver.org).
 
+## [v5.1.0](https://github.com/puppetlabs/puppet-lint/tree/v5.1.0) - 2025-09-25
+
+[Full Changelog](https://github.com/puppetlabs/puppet-lint/compare/v5.0.0...v5.1.0)
+
+### Added
+
+- Fix `Ensure check methods can't modify tokens array` and add Ruby 3.4 testing [#233](https://github.com/puppetlabs/puppet-lint/pull/233) ([alexjfisher](https://github.com/alexjfisher))
+
 ## [v5.0.0](https://github.com/puppetlabs/puppet-lint/tree/v5.0.0) - 2025-09-23
 
 [Full Changelog](https://github.com/puppetlabs/puppet-lint/compare/v4.3.0...v5.0.0)
