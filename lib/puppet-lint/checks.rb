@@ -56,6 +56,7 @@ class PuppetLint::Checks
   def run(fileinfo, data)
     checks_run = []
     if File.extname(fileinfo).downcase.match?(%r{\.ya?ml$})
+      PuppetLint::Data.tokens = []
       PuppetLint::Data.path = fileinfo
       PuppetLint::Data.manifest_lines = data.split("\n", -1)
 
@@ -142,6 +143,10 @@ class PuppetLint::Checks
   #
   # Returns the manifest as a String.
   def manifest
-    PuppetLint::Data.tokens.map(&:to_manifest).join
+    if File.extname(PuppetLint::Data.path).downcase.match?(%r{\.ya?ml$})
+      PuppetLint::Data.manifest_lines.join("\n")
+    else
+      PuppetLint::Data.tokens.map(&:to_manifest).join
+    end
   end
 end
